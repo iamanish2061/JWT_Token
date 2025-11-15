@@ -28,15 +28,15 @@ public class Users {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role =  Role.USER;
+    private Role role =  Role.ROLE_USER;
 
     private String profilePhotoUrl;
 
     private String refreshToken;
 
     public enum Role {
-        ADMIN,
-        USER
+        ROLE_ADMIN,
+        ROLE_USER
     }
 
     public enum AccountStatus {

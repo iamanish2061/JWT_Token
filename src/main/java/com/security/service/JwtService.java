@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 @Service
@@ -33,12 +31,9 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateAccessToken(UserPrincipal userDetails, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
+    public String generateAccessToken(UserPrincipal userPrincipal) {
         return Jwts.builder()
-                .claims(claims)
-                .subject(userDetails.getUsername())
+                .subject(userPrincipal.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(getKey())
@@ -46,9 +41,9 @@ public class JwtService {
     }
 
     // Generate Refresh Token (long-lived)
-    public String generateRefreshToken(UserPrincipal userDetails) {
+    public String generateRefreshToken(UserPrincipal userPrincipal) {
         return Jwts.builder()
-                .subject(userDetails.getUsername())
+                .subject(userPrincipal.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(getKey())
@@ -57,10 +52,6 @@ public class JwtService {
 
     public String extractUsername(String token){
         return extractClaim(token, Claims::getSubject);
-    }
-
-    public String extractRole(String token){
-        return (String) extractAllClaims(token).get("role");
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver){

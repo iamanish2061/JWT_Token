@@ -31,6 +31,12 @@ public class UserService {
 
     //user
     public Users register(Users user){
+        if(userRepo.findByUsername(user.getUsername()) != null)
+            throw new RuntimeException("Username already exists!!");
+        if(userRepo.findByEmail(user.getEmail()) != null)
+            throw new RuntimeException("Email already exists!!");
+
+
         user.setPassword(encoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
@@ -43,7 +49,8 @@ public class UserService {
         // i am using DAO so its dynamically added to the list of providerManager
 //          now authentication is done by dao class's object
 //        in that method :the flow is
-//        1. load the user by username from database (method present in UserDetailsService) and i have implemented that on MyUserDetailsService
+//        1. load the user by username from database
+//        (method present in UserDetailsService) and i have implemented that on CustomUserDetailsService
 //        2. verifying password by encoding entered one to db's password
 //        3. returning an authenticated token with authorities
 
@@ -53,8 +60,8 @@ public class UserService {
         Users dbUser = userRepo.findByUsername(user.getUsername());
 
         // Generate tokens
-        String accessToken = jwtService.generateAccessToken((UserPrincipal) authentication.getPrincipal(), dbUser.getRole().toString());
-        String refreshToken = jwtService.generateRefreshToken((UserPrincipal) authentication.getPrincipal());
+        String accessToken = jwtService.generateAccessToken(new UserPrincipal(dbUser));
+        String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(dbUser));
 
         // Save refresh token in DB
         dbUser.setRefreshToken(refreshToken);
@@ -66,17 +73,21 @@ public class UserService {
         return tokens;
     }
 
-//    public Map<String, String> refresh(String refreshToken) {
-//        Users user = userRepo.findByRefreshToken(refreshToken);
-//        if (user == null) throw new RuntimeException("Invalid refresh token");
-//
-//        String newAccessToken = jwtService.generateAccessToken(new UserPrincipal(user), user.getRole());
-//
-//        Map<String, String> tokens = new HashMap<>();
-//        tokens.put("accessToken", newAccessToken);
-//        tokens.put("refreshToken", refreshToken); // keep same refresh token
-//        return tokens;
-//    }
+    public Map<String, String> refresh(String refreshToken) {
+        Users user = userRepo.findByRefreshToken(refreshToken);
+        if (user == null || jwtService.validateToken(refreshToken, new UserPrincipal(user))) throw new RuntimeException("Invalid refresh token");
+
+        String newAccessToken = jwtService.generateAccessToken(new UserPrincipal(user));
+        String newRefreshToken = jwtService.generateRefreshToken(new UserPrincipal(user));
+
+        user.setRefreshToken(newRefreshToken);
+        userRepo.save(user);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", newAccessToken);
+        tokens.put("refreshToken", newRefreshToken);
+        return tokens;
+    }
 
 
     //admin

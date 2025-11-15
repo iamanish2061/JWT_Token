@@ -25,4 +25,10 @@ public class UserController {
     public ResponseEntity<Map<String, String>> login(@RequestBody Users user) {
         return ResponseEntity.ok(userService.login(user));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        return ResponseEntity.ok(userService.refresh(refreshToken));
+    }
 }

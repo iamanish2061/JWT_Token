@@ -30,9 +30,9 @@ public class AdminController {
     }
 
     @GetMapping("get-user-details")
-    public ResponseEntity<User> getUserDetails(@RequestParam Long id){
-        Optional<User> optUser = userService.findUserById(id);
-        User user = optUser.orElse(null);
+    public ResponseEntity<Users> getUserDetails(@RequestParam Long id){
+        Optional<Users> optUser = userService.findUserById(id);
+        Users user = optUser.orElse(null);
         return ResponseEntity.ok(user);
     }
 }

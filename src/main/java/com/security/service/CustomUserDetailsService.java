@@ -4,6 +4,7 @@ import com.security.entity.UserPrincipal;
 import com.security.entity.Users;
 import com.security.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,6 +21,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         Users user = userRepo.findByUsername(username);
         if(user == null){
             throw new UsernameNotFoundException("User not found!");
+        }
+        if(user.getStatus() == Users.AccountStatus.SUSPENDED){
+            throw new DisabledException("This account is suspended!");
         }
         return new UserPrincipal(user);
     }
